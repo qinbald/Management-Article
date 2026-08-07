@@ -1,0 +1,8 @@
+Flask
+Flask-SQLAlchemy
+Flask-WTF
+Flask-Migrate
+Flask-Login
+Jinja2
+pg8000
+Flask-Bcrypt
