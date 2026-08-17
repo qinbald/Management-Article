@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4 mt-4">
+    <div class="col-12">
+        <h2>Admin Dashboard</h2>
+        <!-- Pesan sambutan dari backend akan disisipkan di sini -->
+        <p class="text-muted" id="welcome-message">Memuat data...</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Daftar Pengguna Sistem</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-4">ID</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-table-body">
+                            <!-- Efek Loading sebelum data muncul -->
+                            <tr>
+                                <td colspan="4" class="text-center py-5">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Memuat...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted mb-0">Mengambil data pengguna...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Skrip JavaScript untuk melakukan Fetch ke Backend -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const tableBody = document.getElementById('user-table-body');
+        const welcomeMessage = document.getElementById('welcome-message');
+
+        // Mengirim request POST sesuai dengan routing Flask Anda
+        // Pastikan 'module_name' diganti dengan nama blueprint Anda yang sebenarnya
+        fetch("{{ url_for('module_name.admin_dashboard') }}", {
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Menampilkan pesan sambutan dari backend
+                welcomeMessage.textContent = data.messages;
+                
+                // Mengosongkan efek loading tabel
+                tableBody.innerHTML = ''; 
+
+                if (data.data.length > 0) {
+                    data.data.forEach(user => {
+                        // Membuat badge warna berbeda untuk admin dan user
+                        let roleBadge = user.role === 'admin' 
+                            ? `<span class="badge bg-danger rounded-pill px-3">Admin</span>` 
+                            : `<span class="badge bg-secondary rounded-pill px-3">User</span>`;
+
+                        // Menyisipkan baris (row) ke dalam tabel
+                        const rowHtml = `
+                            <tr>
+                                <td class="px-4">${user.id}</td>
+                                <td class="fw-bold text-primary">${user.username}</td>
+                                <td>${user.email}</td>
+                                <td>${roleBadge}</td>
+                            </tr>
+                        `;
+                        tableBody.innerHTML += rowHtml;
+                    });
+                } else {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">Belum ada data pengguna yang terdaftar.</td>
+                        </tr>
+                    `;
+                }
+            } else {
+                welcomeMessage.textContent = "Gagal memuat dashboard.";
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-danger">Gagal mengambil data dari server.</td>
+                    </tr>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            welcomeMessage.textContent = "Terjadi kesalahan sistem.";
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-danger">Terjadi kesalahan pada sistem saat memuat data.</td>
+                </tr>
+            `;
+        });
+    });
+</script>
+{% endblock %}

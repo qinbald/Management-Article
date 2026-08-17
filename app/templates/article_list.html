@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-8">
+        <h2>Daftar Artikel Terbaru</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{url_for('main.add_article')}}" class="btn btn-primary" id="btn-tambah">Tambah Artikel</a>
+    </div>
+</div>
+
+<div class="row" id="article-container">
+    <div class="col-12 text-center mt-5" id="loading-indicator">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Memuat...</span>
+        </div>
+        <p class="mt-2 text-muted">Memuat daftar artikel...</p>
+    </div>
+</div>
+
+<script>
+    const currentUserRole = "{{ session.get('role') }}";
+
+    document.addEventListener("DOMContentLoaded", function() {
+        loadArticles();
+    });
+
+    function loadArticles() {
+        const container = document.getElementById('article-container');
+        
+        container.innerHTML = `
+            <div class="col-12 text-center mt-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Memuat...</span>
+                </div>
+                <p class="mt-2 text-muted">Memuat daftar artikel...</p>
+            </div>
+        `;
+
+        fetch('/get_articles')
+            .then(response => response.json())
+            .then(data => {
+                container.innerHTML = ''; 
+
+                if (data.success && data.data.length > 0) {
+                    data.data.forEach(article => {
+                        
+                        // Siapkan tombol hapus jika admin
+                        let deleteBtn = '';
+                        if (currentUserRole === 'admin') {
+                            deleteBtn = `
+                                <button onclick="deleteArticle('${article.title}')" class="btn btn-sm btn-danger shadow-sm">
+                                    Hapus
+                                </button>
+                            `;
+                        }
+
+                        // Tombol hapus sekarang ditempatkan di dalam card-body sejajar dengan judul
+                        const cardHtml = `
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100 shadow-sm border-0 bg-light">
+                                    <div class="card-body">
+                                        <!-- Header Card: Judul dan Tombol Hapus sejajar -->
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h5 class="card-title text-primary mb-0 pe-2">${article.title}</h5>
+                                            ${deleteBtn}
+                                        </div>
+                                        
+                                        <h6 class="card-subtitle mb-3 text-muted">
+                                            <small>Oleh: <strong>${article.author}</strong></small>
+                                        </h6>
+                                        <p class="card-text">${article.description ? article.description : 'Tidak ada deskripsi.'}</p>
+                                    </div>
+                                    <div class="card-footer bg-transparent border-0 pb-3 pt-0">
+                                        <button onclick="window.location.href='#'" class="btn btn-outline-primary w-100">Baca Selengkapnya</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        container.innerHTML += cardHtml;
+                    });
+                } else {
+                    container.innerHTML = '<div class="col-12 text-center text-muted"><p>Belum ada artikel yang diterbitkan.</p></div>';
+                }
+            })
+            .catch(error => {
+                console.error("Gagal mengambil data:", error);
+                container.innerHTML = '<div class="col-12 text-center text-danger"><p>Terjadi kesalahan saat memuat artikel.</p></div>';
+            });
+    }
+
+    function deleteArticle(title) {
+        if (!confirm(`Apakah Anda yakin ingin menghapus artikel "${title}"?`)) {
+            return; 
+        }
+
+        fetch(`/delete_article/${encodeURIComponent(title)}`, {
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.messages); 
+                loadArticles(); 
+            } else {
+                alert("Gagal: " + data.messages); 
+            }
+        })
+        .catch(error => {
+            console.error("Terjadi kesalahan:", error);
+            alert("Terjadi kesalahan pada sistem saat menghapus artikel.");
+        });
+    }
+</script>
+{% endblock %}
