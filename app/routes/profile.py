@@ -4,7 +4,7 @@ from flask import session, jsonify
 
 @blueprint_route.route('/profil_user', methods = ['POST'])
 def profil_user():
-    user_id = session.get('id')
+    user_id = session.get('user_id')
 
     if not user_id:
         return jsonify ({

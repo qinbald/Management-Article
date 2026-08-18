@@ -1,4 +1,4 @@
-from flask import request, jsonify, session
+from flask import request, jsonify, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash 
 from app.models import db
 from app.models import User
@@ -33,13 +33,25 @@ def registrasi():
 def login():
     data = request.get_json()
     get_username = User.query.filter_by(username=data['username']).first()
-    #################################### SIMPAN DATA ROLE LOGIN #######################
-    session['role'] = get_username.role
-    session['id'] = get_username.id
-    #################################### SIMPAN DATA ROLE LOGIN #######################
+    
     if get_username and check_password_hash(get_username.password, data['password']):
-        return jsonify({"success" : True,
-                        "messages" : "Login berhasil", 
-                        "role":get_username.role}), 200
-    return jsonify({"success" : False,
-                    "messages" : "Username atau password salah"}), 401
+        
+        session['user_id'] = get_username.id
+        session['role'] = get_username.role
+        
+        return jsonify({
+            "success": True,
+            "messages": "Login berhasil", 
+            "role": get_username.role
+        }), 200
+        
+    return jsonify({
+        "success": False,
+        "messages": "Username atau password salah"
+    }), 401
+
+@blueprint_route.route('/logout', methods = ['GET'])
+def logout():
+    session.clear()
+
+    return redirect(url_for("main.home"))

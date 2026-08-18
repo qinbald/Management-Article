@@ -10,22 +10,44 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="#">ArtikelWeb</a>
+            <a class="navbar-brand fw-bold" href="{{ url_for('main.home') }}">ArtikelWeb</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- Tambahan align-items-center agar tombol Login rata tengah dengan menu lain -->
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('main.home') }}">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('main.artikel_page') }}">Artikel</a></li>
                     
-                    <!-- Tambahan Menu Profil -->
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.user_profile') }}">Profil</a></li>
+                    <!-- LOGIKA JINJA2 UNTUK MENU BERDASARKAN STATUS LOGIN -->
                     
-                    <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
-                        <a class="btn btn-outline-light btn-sm px-3" href="{{ url_for('main.login_page') }}">Login</a>
-                    </li>
+                    <!-- Jika Anda menggunakan Flask-Login, ganti "session.get('user_id')" menjadi "current_user.is_authenticated" -->
+                    {% if session.get('user_id') %}
+                        
+                        <!-- Menu Profil (Muncul untuk semua user yang sudah login) -->
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('main.user_profile') }}">Profil</a></li>
+                        
+                        <!-- Menu Admin (Hanya muncul jika rolenya adalah 'admin') -->
+                        <!-- Jika menggunakan Flask-Login: ganti menjadi "current_user.role == 'admin'" -->
+                        {% if session.get('role') == 'admin' %}
+                        <li class="nav-item">
+                            <a class="nav-link text-warning fw-semibold" href="{{ url_for('main.admin_dashboard') }}">Admin Panel</a>
+                        </li>
+                        {% endif %}
+
+                        <!-- Tombol Logout -->
+                        <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
+                            <a class="btn btn-outline-danger btn-sm px-3" href="{{ url_for('module_name.logout') }}">Logout</a>
+                        </li>
+
+                    {% else %}
+                        
+                        <!-- Tombol Login (Hanya muncul jika user BELUM login) -->
+                        <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
+                            <a class="btn btn-outline-light btn-sm px-3" href="{{ url_for('main.login_page') }}">Login</a>
+                        </li>
+
+                    {% endif %}
                 </ul>
             </div>
         </div>

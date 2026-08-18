@@ -7,7 +7,7 @@ from . import blueprint_route
 @blueprint_route.route('/add_articel', methods = ['POST'])
 def add_article():
     data = request.get_json()
-    user_id = session.get('id')
+    user_id = session.get('user_id')
     new_article = article_db(
         title = data.get('title'),
         author = data.get('author'),
