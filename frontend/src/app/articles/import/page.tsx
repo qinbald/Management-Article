@@ -21,7 +21,7 @@ export default function ImportWikipedia() {
     setPreview(null);
 
     try {
-      const res = await fetch(`http://localhost:5000/api/wiki/preview?title=${encodeURIComponent(title)}&lang=${lang}`);
+      const res = await fetch(`/api/flask/api/wiki/preview?title=${encodeURIComponent(title)}&lang=${lang}`);
       const data = await res.json();
       if (data.success) {
         setPreview(data.data);
@@ -41,9 +41,10 @@ export default function ImportWikipedia() {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:5000/api/wiki/import', {
+      const res = await fetch('/api/flask/api/wiki/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ title: preview.title, lang, full_text: fullText, category: 'Umum' }),
       });
       const data = await res.json();

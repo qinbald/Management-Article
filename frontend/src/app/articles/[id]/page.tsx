@@ -21,7 +21,7 @@ export default function ArticleDetail() {
   useEffect(() => {
     const fetchArticle = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/articles/${id}`);
+        const res = await fetch(`/api/flask/api/articles/${id}`);
         const data = await res.json();
         if (data.success) {
           setArticle(data.data);
@@ -47,7 +47,7 @@ export default function ArticleDetail() {
 
     const startSession = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/articles/${id}/reading/start`, {
+        const res = await fetch(`/api/flask/api/articles/${id}/reading/start`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ referrer_source: document.referrer || 'Langsung' })
@@ -77,7 +77,7 @@ export default function ArticleDetail() {
             scrollDepth = Math.min(100, Math.max(0, Math.round((scrolled / total) * 100)));
           }
 
-          fetch(`http://localhost:5000/api/articles/${id}/reading/heartbeat`, {
+          fetch(`/api/flask/api/articles/${id}/reading/heartbeat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -93,7 +93,7 @@ export default function ArticleDetail() {
 
     const fetchActiveReaders = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/articles/${id}/active_readers`);
+        const res = await fetch(`/api/flask/api/articles/${id}/active_readers`);
         const data = await res.json();
         if (data.success) setActiveReaders(data.active_readers);
       } catch {}
@@ -107,7 +107,7 @@ export default function ArticleDetail() {
       clearInterval(heartbeatInterval);
       clearInterval(readersInterval);
       if (currentSessionId) {
-        fetch(`http://localhost:5000/api/articles/${id}/reading/end`, {
+        fetch(`/api/flask/api/articles/${id}/reading/end`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ session_id: currentSessionId })

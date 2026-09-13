@@ -10,7 +10,7 @@ export default function Analytics() {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/analytics');
+        const res = await fetch('/api/flask/api/analytics');
         const json = await res.json();
         if (json.success) {
           setData(json.data);

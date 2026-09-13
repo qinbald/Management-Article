@@ -12,7 +12,7 @@ export default function Navbar() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/me', {
+        const res = await fetch('/api/flask/api/me', {
           credentials: 'include'
         });
         const data = await res.json();
@@ -30,7 +30,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:5000/api/logout', {
+      await fetch('/api/flask/api/logout', {
         method: 'POST',
         credentials: 'include'
       });
@@ -78,9 +78,20 @@ export default function Navbar() {
           <div className="flex items-center space-x-3">
             {user ? (
               <>
-                <span className="text-sm font-bold text-primary uppercase border-2 border-primary px-2 py-1 bg-surface">
+                {user.role === 'admin' && (
+                  <Link
+                    href="/admin"
+                    className="text-sm font-bold text-neutral bg-tertiary hover:bg-primary px-3 py-1.5 border-2 border-primary uppercase transition"
+                  >
+                    ADMIN
+                  </Link>
+                )}
+                <Link
+                  href="/profile"
+                  className="text-sm font-bold text-primary uppercase border-2 border-primary px-3 py-1.5 bg-surface hover:bg-secondary transition"
+                >
                   {user.username}
-                </span>
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="text-sm font-bold bg-tertiary text-neutral px-3 py-1.5 border-2 border-primary hover:bg-primary transition uppercase"

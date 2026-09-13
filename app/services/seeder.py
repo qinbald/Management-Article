@@ -124,7 +124,7 @@ def _seed_visit_logs(articles):
             is_bounce = is_bounce,
             referrer_source = referrer,
             created_at = created_at,
-        )
+        ) 
         buffer_visit.append(visit)
         
         # Buat juga ReadingSession untuk analitik baru

@@ -7,33 +7,46 @@ export default function Home() {
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [category, setCategory] = useState('Semua');
+
+  const fetchArticles = async (q = '', cat = 'Semua') => {
+    setLoading(true);
+    try {
+      const url = new URL('http://localhost:3000/api/flask/get_articles');
+      if (q) url.searchParams.append('q', q);
+      if (cat && cat !== 'Semua') url.searchParams.append('category', cat);
+      
+      const res = await fetch(url.toString());
+      const data = await res.json();
+      if (data.success) {
+        setArticles(data.data);
+      } else {
+        setError('GAGAL MEMUAT ARTIKEL');
+      }
+    } catch {
+      setError('KESALAHAN JARINGAN');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchArticles = async () => {
-      try {
-        const res = await fetch('http://localhost:5000/get_articles');
-        const data = await res.json();
-        if (data.success) {
-          setArticles(data.data);
-        } else {
-          setError('GAGAL MEMUAT ARTIKEL');
-        }
-      } catch {
-        setError('KESALAHAN JARINGAN');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchArticles();
   }, []);
 
-  if (loading) return <div className="text-center py-20 font-bold uppercase tracking-widest text-primary">MEMUAT DATA...</div>;
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchArticles(searchQuery, category);
+  };
+
+  if (loading && articles.length === 0) return <div className="text-center py-20 font-bold uppercase tracking-widest text-primary">MEMUAT DATA...</div>;
   if (error) return <div className="text-center py-20 font-bold text-tertiary uppercase">{error}</div>;
 
   return (
     <div className="max-w-6xl mx-auto">
       {/* Hero Header Grunge Style */}
-      <div className="border-4 border-primary p-6 md:p-10 mb-12 bg-neutral shadow-[8px_8px_0px_#2E2E2E] relative overflow-hidden">
+      <div className="border-4 border-primary p-6 md:p-10 mb-8 bg-neutral shadow-[8px_8px_0px_#2E2E2E] relative overflow-hidden">
         <div className="absolute top-2 right-2 bg-secondary text-primary font-bold text-xs px-2 py-1 uppercase border border-primary transform rotate-3">
           EST. 1990s
         </div>
@@ -52,6 +65,33 @@ export default function Home() {
           </Link>
         </div>
       </div>
+
+      {/* Search & Filter */}
+      <form onSubmit={handleSearch} className="mb-12 flex flex-col md:flex-row gap-4 bg-neutral p-4 border-4 border-primary shadow-[4px_4px_0px_#2E2E2E]">
+        <input 
+          type="text" 
+          placeholder="CARI ARTIKEL..." 
+          className="grunge-input flex-1"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <select 
+          className="grunge-input md:w-48"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
+          <option value="Semua">SEMUA KATEGORI</option>
+          <option value="Berita Pendek">BERITA PENDEK</option>
+          <option value="Teknologi">TEKNOLOGI</option>
+          <option value="Sejarah">SEJARAH</option>
+          <option value="Gaya Hidup">GAYA HIDUP</option>
+          <option value="Sains">SAINS</option>
+          <option value="Umum">UMUM</option>
+        </select>
+        <button type="submit" className="grunge-button px-6 py-3">
+          CARI
+        </button>
+      </form>
 
       {/* Article List / Grid */}
       {articles.length === 0 ? (

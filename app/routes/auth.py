@@ -101,8 +101,3 @@ def api_me():
             "role": user.role
         }
     }), 200
-
-@blueprint_route.route('/logout', methods=['GET'])
-def logout():
-    session.clear()
-    return redirect(url_for("main.home"))
