@@ -1,0 +1,100 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
+export default function Analytics() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/analytics');
+        const json = await res.json();
+        if (json.success) {
+          setData(json.data);
+        } else {
+          setError('Gagal memuat data analitik');
+        }
+      } catch {
+        setError('Terjadi kesalahan jaringan');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnalytics();
+  }, []);
+
+  if (loading) return <div className="text-center py-20 font-bold uppercase tracking-widest text-primary">MEMUAT ANALITIK...</div>;
+  if (error) return <div className="text-center py-20 font-bold text-tertiary uppercase">{error}</div>;
+  if (!data || !data.summary) return <div className="text-center py-20 font-bold uppercase text-primary border-2 border-dashed border-primary bg-neutral p-8">BELUM ADA DATA ANALITIK.</div>;
+
+  const { summary, category_stats, top_articles, referrer_stats } = data;
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-8">
+      <div className="border-4 border-primary p-6 bg-neutral shadow-[8px_8px_0px_#2E2E2E]">
+        <h1 className="text-3xl font-extrabold uppercase text-primary">DASBOR ANALITIK</h1>
+        <p className="text-sm font-bold uppercase text-primary/70 mt-1">DATA REAL — TANPA DUMMY — DARI READING SESSION</p>
+      </div>
+      
+      {/* Ringkasan */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title="TOTAL KUNJUNGAN" value={summary.total_visits} />
+        <StatCard title="RATA WAKTU BACA" value={`${summary.avg_read_time_min} MNT`} />
+        <StatCard title="BOUNCE RATE" value={`${summary.bounce_rate_pct}%`} />
+        <StatCard title="RATA SCROLL" value={`${summary.avg_scroll_depth}%`} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Top Artikel */}
+        <div className="bg-neutral p-6 border-4 border-primary shadow-[6px_6px_0px_#2E2E2E]">
+          <h2 className="text-lg font-extrabold uppercase text-primary mb-4 border-b-4 border-primary pb-2">ARTIKEL TERPOPULER</h2>
+          <div className="space-y-4">
+            {top_articles.map((art: any, i: number) => (
+              <div key={i} className="flex justify-between items-center border-b-2 border-primary/20 pb-3 last:border-0 last:pb-0">
+                <div className="pr-4">
+                  <h3 className="font-bold uppercase text-primary line-clamp-1">{art.title}</h3>
+                  <p className="text-xs font-bold uppercase text-primary/60">{art.category}</p>
+                </div>
+                <div className="text-right shrink-0 bg-white border-2 border-primary px-2 py-1">
+                  <div className="font-extrabold text-primary">{art.views} VIEW</div>
+                  <div className="text-xs font-bold text-primary/60">{art.avg_active_time}S AVG</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Kategori */}
+        <div className="bg-neutral p-6 border-4 border-primary shadow-[6px_6px_0px_#2E2E2E]">
+          <h2 className="text-lg font-extrabold uppercase text-primary mb-4 border-b-4 border-primary pb-2">PERFORMA KATEGORI</h2>
+          <div className="space-y-4">
+            {category_stats.map((cat: any, i: number) => (
+              <div key={i} className="flex justify-between items-center border-b-2 border-primary/20 pb-3 last:border-0 last:pb-0">
+                <div>
+                  <h3 className="font-bold uppercase text-primary">{cat.category}</h3>
+                  <p className="text-xs font-bold uppercase text-primary/60">{cat.total_articles} ARTIKEL</p>
+                </div>
+                <div className="text-right bg-white border-2 border-primary px-2 py-1">
+                  <div className="font-extrabold text-primary">{cat.total_visits} VIEW</div>
+                  <div className="text-xs font-bold text-primary/60">{cat.bounce_rate}% BOUNCE</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ title, value }: { title: string, value: string | number }) {
+  return (
+    <div className="bg-neutral p-6 border-4 border-primary shadow-[4px_4px_0px_#2E2E2E]">
+      <h3 className="text-xs font-bold uppercase text-primary/60 mb-1">{title}</h3>
+      <div className="text-3xl font-extrabold text-primary">{value}</div>
+    </div>
+  );
+}

@@ -6,3 +6,7 @@ Flask-Login
 Jinja2
 pg8000
 Flask-Bcrypt
+pandas
+Faker
+wikipedia-api
+flask-cors

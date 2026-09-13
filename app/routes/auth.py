@@ -1,57 +1,108 @@
 from flask import request, jsonify, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash 
-from app.models import db
-from app.models import User
+from app.models import db, User
 from . import blueprint_route
 
 ######################################################################### FUNGSI REGISTRASI
-@blueprint_route.route('/registrasi', methods = ['POST'])
+@blueprint_route.route('/registrasi', methods=['POST'])
 def registrasi():
-    data = request.get_json()
-    user_exist = User.query.filter_by(username=data['username']).first()
-    if user_exist:
+    data = request.get_json() or {}
+    username = data.get('username', '').strip()
+    email = data.get('email', '').strip()
+    password = data.get('password', '')
+
+    if not username or not email or not password:
         return jsonify({
-                'success' : False,
-                'messages' : "Username sudah ada, silakan input username baru"
-            })
-    hashed_pw = generate_password_hash(data['password'])
+            'success': False,
+            'messages': "Semua field (username, email, password) wajib diisi."
+        }), 400
+
+    if User.query.filter_by(username=username).first():
+        return jsonify({
+            'success': False,
+            'messages': "Username sudah digunakan, silakan pilih username lain."
+        }), 400
+
+    if User.query.filter_by(email=email).first():
+        return jsonify({
+            'success': False,
+            'messages': "Email sudah terdaftar, silakan gunakan email lain."
+        }), 400
+
+    # Role selalu 'user' default untuk keamanan, kecuali didaftarkan khusus
+    hashed_pw = generate_password_hash(password)
     user_info = User(
-        username=data['username'], 
-        email=data['email'], 
+        username=username, 
+        email=email, 
         password=hashed_pw,
-        role=data.get('role'))
+        role='user'
+    )
     db.session.add(user_info)
     db.session.commit()
 
     return jsonify({
-        'success' : True,
-        'messages' : "User berhasil ditambahkan"
-    })
+        'success': True,
+        'messages': "Pendaftaran berhasil, silakan masuk."
+    }), 201
 
 ######################################################################### FUNGSI LOGIN 
-@blueprint_route.route('/login', methods = ['POST'])
+@blueprint_route.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    get_username = User.query.filter_by(username=data['username']).first()
+    data = request.get_json() or {}
+    username = data.get('username', '').strip()
+    password = data.get('password', '')
+
+    if not username or not password:
+        return jsonify({
+            "success": False,
+            "messages": "Username dan password wajib diisi."
+        }), 400
+
+    user = User.query.filter_by(username=username).first()
     
-    if get_username and check_password_hash(get_username.password, data['password']):
-        
-        session['user_id'] = get_username.id
-        session['role'] = get_username.role
+    if user and check_password_hash(user.password, password):
+        session['user_id'] = user.id
+        session['role'] = user.role
+        session['username'] = user.username
         
         return jsonify({
             "success": True,
-            "messages": "Login berhasil", 
-            "role": get_username.role
+            "messages": "Login berhasil.", 
+            "role": user.role
         }), 200
         
     return jsonify({
         "success": False,
-        "messages": "Username atau password salah"
+        "messages": "Username atau password salah."
     }), 401
 
-@blueprint_route.route('/logout', methods = ['GET'])
+@blueprint_route.route('/api/logout', methods=['POST'])
+def api_logout():
+    session.clear()
+    return jsonify({"success": True, "messages": "Logout berhasil."}), 200
+
+@blueprint_route.route('/api/me', methods=['GET'])
+def api_me():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"success": False, "messages": "Not authenticated"}), 401
+    
+    user = User.query.get(user_id)
+    if not user:
+        session.clear()
+        return jsonify({"success": False, "messages": "User not found"}), 401
+        
+    return jsonify({
+        "success": True,
+        "data": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role
+        }
+    }), 200
+
+@blueprint_route.route('/logout', methods=['GET'])
 def logout():
     session.clear()
-
     return redirect(url_for("main.home"))
