@@ -273,3 +273,21 @@ class VisitLog(db.Model):
             f"<VisitLog id={self.id} article_id={self.article_id} "
             f"bounce={self.is_bounce} duration={self.active_time_seconds}s>"
         )
+
+
+# =============================================================================
+# MODEL: ACTIVE VISITOR (GLOBAL HEARTBEAT)
+# =============================================================================
+class ActiveVisitor(db.Model):
+    """Penyimpanan heartbeat pengunjung online global (beranda, artikel, dll)."""
+    __tablename__ = "analytics_active_visitor"
+
+    id = db.Column(db.Integer, primary_key=True)
+    visitor_id = db.Column(db.String(64), unique=True, nullable=False, index=True)
+    user_id = db.Column(db.Integer, nullable=True)
+    last_seen = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)
+
+    def __init__(self, visitor_id, user_id=None):
+        self.visitor_id = visitor_id
+        self.user_id = user_id
+        self.last_seen = datetime.utcnow()

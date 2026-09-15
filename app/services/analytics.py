@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 from sqlalchemy import func
-from app.models import db, Article, ReadingSession
+from app.models import db, Article, ReadingSession, ActiveVisitor
 
 from datetime import datetime, timedelta
 
@@ -11,10 +11,9 @@ def get_engagement_metrics():
     if articles_count == 0:
         return None
 
-    # ── 0. Real-time Active Users (Global) ─────────────────────────
-    threshold = datetime.utcnow() - timedelta(seconds=45)
-    current_active_users = db.session.query(func.count(func.distinct(ReadingSession.visitor_id))).\
-        filter(ReadingSession.last_seen_at >= threshold).scalar() or 0
+    # ── 0. Real-time Active Users (Global via ActiveVisitor heartbeat) ──
+    threshold_online = datetime.utcnow() - timedelta(minutes=2)
+    current_active_users = ActiveVisitor.query.filter(ActiveVisitor.last_seen >= threshold_online).count()
         
     total_unique_visitors = db.session.query(func.count(func.distinct(ReadingSession.visitor_id))).scalar() or 0
 
