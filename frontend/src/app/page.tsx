@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { StaggeredGrid } from '@/components/StaggeredGrid';
 import { HomePageSkeleton } from '@/components/Skeleton';
@@ -80,9 +80,12 @@ export default function Home() {
     fetchArticles(searchQuery, cat);
   };
 
+  const articlesRef = useRef<HTMLDivElement>(null);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     fetchArticles(searchQuery, category);
+    articlesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   if (loading && articles.length === 0) return <HomePageSkeleton />;
@@ -99,10 +102,10 @@ export default function Home() {
           Platform kolaboratif untuk mendokumentasikan ide, berbagi temuan teknologi, dan menganalisis tren literasi secara <em className="font-medium text-slate-700">real-time</em>. Ruang terbuka untuk para inovator.
         </p>
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-          <Link href="/articles/create" className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3.5 rounded-full shadow-sm hover:shadow-md transition-all">
+          <Link href="/articles/create" className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3.5 rounded-full shadow-lg shadow-emerald-200/50 hover:shadow-xl hover:shadow-emerald-300/50 hover:-translate-y-0.5 transition-all duration-300">
             Publikasikan Karya
           </Link>
-          <Link href="/articles/import" className="w-full sm:w-auto bg-white text-emerald-600 hover:bg-emerald-50 border border-emerald-200 font-semibold px-8 py-3.5 rounded-full shadow-sm hover:shadow-md transition-all">
+          <Link href="/articles/import" className="w-full sm:w-auto bg-white/80 backdrop-blur-md text-emerald-700 hover:bg-white border border-emerald-200/60 font-semibold px-8 py-3.5 rounded-full shadow-lg shadow-slate-200/40 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
             Jelajah Wikipedia
           </Link>
         </div>
@@ -160,6 +163,7 @@ export default function Home() {
       </div>
 
       {/* Article Grid */}
+      <div ref={articlesRef} className="scroll-mt-24" />
       {articles.length === 0 ? (
         <div className="text-center py-20 bg-white/40 backdrop-blur-sm border border-slate-200 border-dashed rounded-3xl">
           <p className="font-medium text-slate-500">Belum ada dokumen yang ditemukan.</p>
