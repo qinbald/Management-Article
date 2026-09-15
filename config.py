@@ -5,12 +5,21 @@ load_dotenv()
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+def fix_db_url(url):
+    if not url:
+        return 'postgresql+pg8000://postgres:sandipostgres@localhost:5432/management_artikel'
+    # Supabase gives postgres:// or postgresql:// without driver
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+pg8000://", 1)
+    elif url.startswith("postgresql://") and not url.startswith("postgresql+"):
+        url = url.replace("postgresql://", "postgresql+pg8000://", 1)
+    return url
+
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'sandirahasiaartikel_dev_key_change_in_prod'
     
-    # Gunakan PostgreSQL
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'postgresql+pg8000://postgres:sandipostgres@localhost:5432/management_artikel'
+    # Gunakan PostgreSQL (Supabase / Local)
+    SQLALCHEMY_DATABASE_URI = fix_db_url(os.environ.get('DATABASE_URL'))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Cookie security
@@ -42,4 +51,4 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
     # Di production, pastikan DATABASE_URL diset
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = fix_db_url(os.environ.get('DATABASE_URL'))
