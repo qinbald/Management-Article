@@ -8,6 +8,7 @@ export default function ImportWikipedia() {
   const [title, setTitle] = useState('');
   const [lang, setLang] = useState('id');
   const [fullText, setFullText] = useState(false);
+  const [category, setCategory] = useState('Umum');
   
   const [preview, setPreview] = useState<any>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
@@ -45,7 +46,7 @@ export default function ImportWikipedia() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ title: preview.title, lang, full_text: fullText, category: 'Umum' }),
+        body: JSON.stringify({ title: preview.title, lang, full_text: fullText, category }),
       });
       const data = await res.json();
       if (data.success) {
@@ -61,37 +62,37 @@ export default function ImportWikipedia() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-neutral p-8 border-4 border-primary shadow-[8px_8px_0px_#2E2E2E] relative">
-      <div className="absolute -top-3 -right-3 bg-surface text-neutral font-bold px-3 py-1 border-2 border-primary transform rotate-3 uppercase">
+    <div className="max-w-2xl mx-auto glass-card p-8 relative">
+      <div className="absolute -top-3 right-6 bg-accent/20 text-accent font-semibold px-4 py-1 rounded-full border border-accent/30 text-xs backdrop-blur-md">
         WIKI SYNC
       </div>
 
-      <h1 className="text-3xl font-extrabold uppercase text-primary mb-2 mt-2">IMPOR WIKIPEDIA</h1>
-      <p className="text-primary/80 text-sm mb-8 font-bold uppercase border-b-4 border-primary pb-4">
-        TARIK DATA ARTIKEL LANGSUNG DARI WIKIPEDIA KE SISTEM.
+      <h1 className="text-3xl font-extrabold text-foreground mb-2 mt-2">IMPOR WIKIPEDIA</h1>
+      <p className="text-foreground/70 text-sm mb-8 font-medium border-b border-white/10 pb-4">
+        Tarik data artikel langsung dari Wikipedia ke sistem.
       </p>
       
       {error && (
-        <div className="bg-tertiary text-neutral p-4 mb-6 font-bold uppercase border-2 border-primary">
+        <div className="bg-tertiary/20 text-tertiary p-4 mb-6 font-semibold text-sm rounded-lg border border-tertiary/30">
           ERROR: {error}
         </div>
       )}
 
       <div className="space-y-6">
         <div>
-          <label className="block text-sm font-bold uppercase text-primary mb-2">TOPIK / JUDUL WIKIPEDIA</label>
-          <div className="flex flex-col sm:flex-row gap-3">
+          <label className="block text-xs font-semibold uppercase text-foreground/70 mb-2">TOPIK / JUDUL WIKIPEDIA</label>
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="flex-1 grunge-input px-4 py-3 text-primary font-bold"
-              placeholder="CONTOH: KECERDASAN BUATAN"
+              className="w-full sm:w-auto grow min-w-0 glass-input px-4 py-3 text-foreground"
+              placeholder="Contoh: Kecerdasan Buatan"
             />
             <select
               value={lang}
               onChange={(e) => setLang(e.target.value)}
-              className="grunge-input px-4 py-3 bg-white text-primary font-bold uppercase cursor-pointer"
+              className="glass-input px-4 py-3 text-foreground cursor-pointer shrink-0 w-full sm:w-28 text-center"
             >
               <option value="id">ID</option>
               <option value="en">EN</option>
@@ -99,48 +100,69 @@ export default function ImportWikipedia() {
             <button
               onClick={handlePreview}
               disabled={loadingPreview || !title}
-              className="grunge-button px-6 py-3 disabled:opacity-50"
+              className="glass-button px-6 py-3 disabled:opacity-50 shrink-0 w-full sm:w-auto"
             >
               {loadingPreview ? 'MENCARI...' : 'CARI'}
             </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 bg-white p-3 border-2 border-primary">
+        <div className="flex items-center gap-3 bg-white/5 p-4 rounded-lg border border-white/10">
           <input
             type="checkbox"
             id="fullText"
             checked={fullText}
             onChange={(e) => setFullText(e.target.checked)}
-            className="w-5 h-5 accent-primary border-2 border-primary cursor-pointer"
+            className="w-5 h-5 accent-primary cursor-pointer rounded"
           />
-          <label htmlFor="fullText" className="text-sm font-bold uppercase text-primary cursor-pointer">
-            SIMPAN TEKS LENGKAP (BUKAN HANYA RINGKASAN)
+          <label htmlFor="fullText" className="text-sm font-semibold text-foreground/80 cursor-pointer">
+            Simpan teks lengkap (bukan hanya ringkasan)
           </label>
         </div>
 
+        <div>
+          <label className="block text-xs font-semibold uppercase text-foreground/70 mb-2">KATEGORI PENYIMPANAN</label>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="w-full glass-input px-4 py-3 text-foreground cursor-pointer"
+          >
+            {[
+              'Umum',
+              'Sains & Teknologi',
+              'Sejarah & Geografi',
+              'Sosial & Budaya',
+              'Kesehatan & Gaya Hidup',
+              'Ekonomi & Bisnis',
+              'Biografi'
+            ].map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+
         {preview && (
-          <div className="mt-8 p-6 bg-white border-4 border-primary relative transform rotate-[0.5deg]">
-            <div className="absolute -top-3 left-4 bg-secondary text-primary font-bold px-2 py-1 text-xs border-2 border-primary uppercase">
+          <div className="mt-8 p-6 glass-card relative">
+            <div className="absolute -top-3 left-6 bg-primary/20 text-primary font-semibold px-3 py-1 rounded-full border border-primary/30 text-xs backdrop-blur-md">
               PREVIEW
             </div>
-            <h3 className="font-extrabold text-xl text-primary mb-3 uppercase mt-2">{preview.title}</h3>
-            <p className="text-sm text-primary/90 mb-6 line-clamp-5 leading-relaxed font-normal">
+            <h3 className="font-extrabold text-xl text-foreground mb-3 mt-2">{preview.title}</h3>
+            <p className="text-sm text-foreground/80 mb-6 line-clamp-5 leading-relaxed">
               {preview.summary}
             </p>
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-t-2 border-primary pt-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-white/10 pt-4">
               <a
                 href={preview.full_url}
                 target="_blank"
                 rel="noreferrer"
-                className="text-accent font-bold text-sm hover:underline uppercase"
+                className="text-accent font-semibold text-sm hover:underline"
               >
-                LIHAT DI WIKIPEDIA &rarr;
+                Lihat di Wikipedia &rarr;
               </a>
               <button
                 onClick={handleImport}
                 disabled={loadingImport}
-                className="grunge-button px-6 py-3 w-full sm:w-auto disabled:opacity-50"
+                className="glass-button px-6 py-3 w-full sm:w-auto disabled:opacity-50"
               >
                 {loadingImport ? 'MENGIMPOR...' : 'IMPOR ARTIKEL INI'}
               </button>

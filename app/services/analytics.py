@@ -4,10 +4,19 @@ import numpy as np
 from sqlalchemy import func
 from app.models import db, Article, ReadingSession
 
+from datetime import datetime, timedelta
+
 def get_engagement_metrics():
     articles_count = Article.query.count()
     if articles_count == 0:
         return None
+
+    # ── 0. Real-time Active Users (Global) ─────────────────────────
+    threshold = datetime.utcnow() - timedelta(seconds=45)
+    current_active_users = db.session.query(func.count(func.distinct(ReadingSession.visitor_id))).\
+        filter(ReadingSession.last_seen_at >= threshold).scalar() or 0
+        
+    total_unique_visitors = db.session.query(func.count(func.distinct(ReadingSession.visitor_id))).scalar() or 0
 
     # ── 1. Summary global (SQL Aggregation) ────────────────────────
     summary_stats = db.session.query(
@@ -23,6 +32,8 @@ def get_engagement_metrics():
     bounce_rate = (float(summary_stats.total_bounces or 0) / total_visits * 100) if total_visits > 0 else 0
 
     summary = {
+        'current_active_users': current_active_users,
+        'total_unique_visitors': total_unique_visitors,
         'total_articles': articles_count,
         'total_articles_legacy': articles_count,
         'total_visits': total_visits,

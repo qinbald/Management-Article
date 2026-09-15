@@ -1,103 +1,135 @@
-# ArtikelSpace – Miro‑styled Article Management System
+# ArtikelSpace – Modern Knowledge & Analytics Platform
 
-## 📖 Overview
+Sistem manajemen artikel dan analitik interaksi berbasis arsitektur decoupled (Backend REST API + Modern Frontend). Menggabungkan penerbitan konten, integrasi sumber terbuka Wikipedia, pelacakan sesi baca real-time, dan pemrosesan statistik data keterlibatan pembaca.
 
-`ArtikelSpace` is a Flask‑based web application that lets users **create, read, update and delete** articles, manage their profile, and view **engagement analytics** powered by **Pandas**. The UI follows the **Miro Design System**.
+---
 
-## 🗄️ Database Schema (Models)
+## 🏗️ Arsitektur Sistem
 
-1. **User (`data_user`)**: `id`, `username`, `email`, `password`, `role` (admin/user).
-2. **Article (`articles`)**: `id`, `title`, `category`, `author`, `description`, `published_at`, `user_id`.
-3. **VisitLog (`analytics_visit_log`)**: `id`, `article_id`, `active_time_seconds`, `max_scroll_depth`, `interaction_count`, `is_bounce`, `referrer_source`, `created_at`.
+Aplikasi terbagi menjadi dua subsistem independen:
 
-## 🗺️ High‑level Flow
+1. **Backend Service (Python/Flask)**
+   - REST API penyedia data JSON dan manajemen sesi login.
+   - Lapisan ORM untuk persistensi data relasional.
+   - Mesin analitik data terisolasi menggunakan agregasi Pandas & NumPy.
+   - Integrasi eksternal Wikipedia API.
+
+2. **Frontend Client (Next.js/React)**
+   - Antarmuka berbasis Glassmorphism UI (Tailwind CSS).
+   - Dynamic routing (App Router) dan state management di sisi klien.
+   - Reverse proxy internal untuk komunikasi same-origin ke backend.
 
 ```mermaid
-flowchart TD
-    A[Start – User opens http://127.0.0.1:5000] --> B{Is user logged in?}
-    B -- Yes --> C[Navbar shows Profile, Add Article, Admin (if admin)]
-    B -- No --> D[Navbar shows Login / Register]
-    C --> E{Select page}
-    D --> E
-    E -->|Home| F[Landing page]
-    E -->|All Articles| G[Article List]
-    E -->|Add Article| H[Form – POST /add_articel]
-    E -->|Profile| I[Profile page]
-    E -->|Admin Dashboard| J[Admin page]
-    E -->|Analytics| K[Analytics dashboard]
+flowchart LR
+    A[Browser Client] <-->|HTTP / JSON| B[Next.js Frontend]
+    B <-->|Reverse Proxy /api/flask| C[Flask REST API]
+    C <-->|Wikipedia-API| D[Wikipedia Engine]
+    C <-->|ORM Data Layer| E[(Relational Database)]
+    C <-->|Data Engine| F[Pandas / NumPy Analytics]
 ```
 
-## 🚀 API Endpoints
+---
 
-### Auth (`app/routes/auth.py`)
+## ✨ Fitur-Fitur Utama
 
-- `POST /registrasi`: Register user.
-- `POST /login`: Login user, set session.
-- `GET /logout`: Clear session.
+### 1. Manajemen Akun & Hak Akses
 
-### Article (`app/routes/article.py`)
+- **Registrasi & Otentikasi**: Pendaftaran akun baru, validasi kredensial, dan hashing sandi aman via Bcrypt.
+- **Manajemen Sesi**: Sesi berbasis server-side cookie dengan proteksi state.
+- **Kontrol Peran Pengguna (RBAC)**: Pemisahan hak akses antara pengguna biasa (`user`) dan pengelola sistem (`admin`).
 
-- `POST /add_articel`: Create article.
-- `POST /delete_article/<title>`: Delete article by title (Admin only).
-- `GET /get_articles`: Get articles (filter by `title` or `author`, or all).
-- `GET /api/wiki/search`: Search Wikipedia.
-- `GET /api/wiki/preview`: Preview Wikipedia article.
+### 2. Penerbitan & Pengelolaan Konten
 
-### Profile & Admin (`app/routes/profile.py`, `app/routes/admin.py`)
+- **Publikasi Artikel**: Penulisan artikel manual lengkap dengan atribusi penulis dan pemilihan kategori (Teknologi, Sains, Sejarah, Gaya Hidup, Berita Pendek, Umum).
+- **Katalog & Pencarian Cepat**: Filter artikel dinamis berdasarkan kata kunci judul dan kategori topik.
+- **Halaman Baca & Pengukur Sesi**: Tampilan reader yang nyaman dilengkapi tracking durasi aktif membaca dan perhitungan total pembaca permanen.
+- **Profil Pengguna**: Manajemen portofolio artikel yang diterbitkan oleh masing-masing pengguna dengan opsi penghapusan mandiri.
 
-- `POST /profil_user`: Get logged-in user profile and their articles.
-- `POST /admin_dashboard`: Get all users data.
+### 3. Integrasi Eksternal Wikipedia
 
-### Analytics (`app/routes/analytics.py`)
+- **Pencarian Topik**: Mencari ensiklopedia publik Wikipedia langsung dari dashboard aplikasi (multi-bahasa: ID/EN).
+- **Pratinjau & Impor Cepat**: Review ringkasan artikel Wikipedia sebelum dimasukkan secara otomatis ke dalam arsip artikel lokal.
 
-- `GET /analytics`: Analytics UI.
-- `GET /api/analytics`: Analytics JSON data.
-- `POST /analytics/reseed`: Reseed database with Faker.
+### 4. Mesin Analitik Keterlibatan (Pandas Engine)
 
-## 🛠️ Setup & Run
+- **Metrik Keterlibatan**: Kalkulasi waktu aktif membaca rata-rata, kedalaman scroll, dan interaksi per sesi.
+- **Strict Bounce Rate**: Evaluasi kunjungan singkat berdasar ambang batas multi-variabel (waktu < 10 detik, tanpa klik, scroll < 20%).
+- **Varians Waktu Baca ($\sigma^2$)**: Pengukuran stabilitas retensi pembaca per kategori konten.
+- **Analisis Tren OLS Linear Regression**: Prediksi arah pertumbuhan trafik kunjungan selama 30 hari terakhir.
+- **Distribusi Sumber Trafik**: Pemetaan lalu lintas berdasarkan kanal rujukan (Organik, Media Sosial, Langsung, Internal).
+
+### 5. Dashboard Administrator
+
+- **Pemantauan Pengguna**: Panel inspeksi seluruh akun terdaftar, distribusi peran, dan status aktivitas sistem.
+- **Moderasi Konten**: Otoritas penghapusan artikel lintas penulis untuk menjaga integritas arsip.
+
+---
+
+## 📦 Skema Model Data (Konseptual)
+
+Model relasional dirancang menggunakan pemisahan entitas inti:
+
+- **Pengguna (`User`)**: Menyimpan identitas akun, kredensial terenkripsi, dan peran sistem.
+- **Artikel (`Article`)**: Menyimpan metadata judul, slug, kategori, penulis, konten deskripsi, waktu rilis, serta relasi ke pengguna.
+- **Sesi Membaca (`ReadingSession`)**: Mencatat jejak sesi pembaca nyata (waktu mulai, waktu selesai, dan penanda keaktifan).
+- **Log Kunjungan (`VisitLog`)**: Mencatat riwayat metrik kuantitatif (durasi detik, kedalaman scroll, interaksi, status bounce, kanal rujukan) untuk kebutuhan komputasi analitik.
+
+---
+
+## 🚀 Panduan Menjalankan Aplikasi
+
+### Kebutuhan Sistem
+
+- Python 3.10+
+- Node.js 18+ & npm
+- Akses ke database relasional yang didukung SQLAlchemy
+
+### 1. Menjalankan Backend (Flask)
 
 ```bash
+# Buat dan aktifkan virtual environment
+python -m venv env
+# Windows:
+env\Scripts\activate
+# Linux/macOS:
+# source env/bin/activate
+
+# Pasang dependensi backend
 pip install -r requirements.txt
+
+# Siapkan migrasi dan skema data
 flask db upgrade
+
+# (Opsional) Jalankan data seeder untuk pengujian analitik
 python -m app.services.seeder
+
+# Jalankan server API backend (Port 5000)
 python run.py
 ```
 
-## 📊 How the Pandas Analytics Work (Real VisitLog Data)
+### 2. Menjalankan Frontend (Next.js)
 
-The analytics engine uses Pandas to process raw `VisitLog` data joined with `Article` data. It calculates bounce rates based on active time, scroll depth, and interaction count, and aggregates metrics by category and referrer source.
+Buka terminal baru:
 
-1. **Data Extraction** – All rows from `analytics_article` (50) and `analytics_visit_log` (5.000) are loaded into two `DataFrame`s.
-2. **Data Merging** – `VisitLog` is merged with `Article` via `pd.merge(how='left')` to enrich each visit with `category` and `author`.
-3. **Bounce Rate (Strict Logic)** – `is_bounce = (active_time_seconds < 10) AND (interaction_count == 0) AND (max_scroll_depth < 20)` — exactly as stored in DB.
-4. **Category Aggregations** – `groupby('category').agg(...)` produces per-category `total_visits`, `avg_active_time`, `bounce_rate`, `avg_scroll`, and `active_time_variance` (σ²).
-5. **Linear Regression Trend** – `numpy.polyfit` on daily visit counts over the last 30 days yields slope `m` and direction (`up` / `down` / `flat`).
-6. **Referrer Breakdown** – `groupby('referrer_source')` shows traffic share per channel (Organik, Media Sosial, Langsung, Tautan Internal).
-7. **Top-5 Articles** – Grouped by `article_id` and sorted by `views` (visit count).
-8. **Result** – Returned as a nested dict consumed by `analytics.html` and the JSON API.
+```bash
+cd frontend
 
-### 🗄️ Database Models (SQLAlchemy)
+# Pasang dependensi paket frontend
+npm install
 
-```python
-class Article(db.Model):
-    __tablename__ = "analytics_article"
-    id           = db.Column(db.Integer, primary_key=True)
-    title        = db.Column(db.String(255), nullable=False)
-    category     = db.Column(db.String(100), nullable=False)  # 5 categories
-    author       = db.Column(db.String(255), nullable=False)
-    published_at = db.Column(db.DateTime, nullable=False)
-
-class VisitLog(db.Model):
-    __tablename__ = "analytics_visit_log"
-    id                  = db.Column(db.Integer, primary_key=True)
-    article_id          = db.Column(db.Integer, db.ForeignKey("analytics_article.id"))
-    active_time_seconds = db.Column(db.Integer, nullable=False)  # 2–600
-    max_scroll_depth    = db.Column(db.Integer, nullable=False)  # 0–100
-    interaction_count   = db.Column(db.Integer, nullable=False)  # 0–15
-    is_bounce           = db.Column(db.Boolean, nullable=False)
-    referrer_source     = db.Column(db.String(100), nullable=False)
-    created_at          = db.Column(db.DateTime, nullable=False)
+# Jalankan mode pengembangan (Port 3000)
+npm run dev
 ```
+
+Buka peramban di `http://localhost:3000`.
+
+---
+
+## 🔒 Konfigurasi Keamanan & Enkripsi
+
+- Variabel lingkungan sensitif (kunci rahasia sesi, konfigurasi basis data) wajib dikelola melalui file lingkungan `.env` atau konfigurasi server produksi.
+- Kredensial pengguna tidak pernah disimpan dalam bentuk teks biasa.
+- Pembatasan endpoint mutasi data menggunakan dekorator autentikasi berlapis.
 
 Seeder (`app/services/seeder.py`) uses `Faker('id_ID')` + `random`, commits per 1.000 rows, and enforces the bounce rule exactly.
 

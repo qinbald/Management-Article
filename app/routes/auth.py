@@ -61,6 +61,12 @@ def login():
     user = User.query.filter_by(username=username).first()
     
     if user and check_password_hash(user.password, password):
+        if user.is_blocked:
+            return jsonify({
+                "success": False,
+                "messages": "Akun Anda telah diblokir sementara. Hubungi administrator."
+            }), 403
+
         session['user_id'] = user.id
         session['role'] = user.role
         session['username'] = user.username
@@ -98,6 +104,8 @@ def api_me():
             "id": user.id,
             "username": user.username,
             "email": user.email,
-            "role": user.role
+            "role": user.role,
+            "warning_count": user.warning_count,
+            "last_warning_message": user.last_warning_message
         }
     }), 200

@@ -19,6 +19,9 @@ class User(db.Model):
         nullable=False,
         default='user'
     )
+    is_blocked = db.Column(db.Boolean, nullable=False, default=False, server_default='false')
+    warning_count = db.Column(db.Integer, nullable=False, default=0, server_default='0')
+    last_warning_message = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -53,6 +56,7 @@ class Article(db.Model):
     category = db.Column(db.String(100), nullable=False, default='Umum', index=True)
     author = db.Column(db.String(255), nullable=False, default='Anonim')
     description = db.Column(db.Text, nullable=True)
+    is_locked = db.Column(db.Boolean, nullable=False, default=False, server_default='false')
     published_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)
 
     # Foreign Key ke User (opsional: jika artikel diimpor bot/Wikipedia, user_id=None)
@@ -82,18 +86,94 @@ class Article(db.Model):
         cascade='all, delete-orphan'
     )
 
-    def __init__(self, title, category='Umum', author='Anonim', description=None, user_id=None, slug=None, published_at=None):
+    # Relasi 1:N -> Article memiliki banyak ArticleRevision
+    revisions = db.relationship(
+        'ArticleRevision',
+        back_populates='article',
+        lazy=True,
+        cascade='all, delete-orphan'
+    )
+
+    def __init__(self, title, category='Umum', author='Anonim', description=None, user_id=None, slug=None, published_at=None, is_locked=False):
         self.title = title
         self.category = category
         self.author = author
         self.description = description
         self.user_id = user_id
         self.slug = slug
+        self.is_locked = is_locked
         if published_at:
             self.published_at = published_at
 
     def __repr__(self):
-        return f"<Article id={self.id} title='{self.title[:30]}' category='{self.category}'>"
+        return f"<Article id={self.id} title='{self.title[:30]}' category='{self.category}' locked={self.is_locked}>"
+
+
+# =============================================================================
+# MODEL: ARTICLE REVISION (RIWAYAT EDIT)
+# =============================================================================
+class ArticleRevision(db.Model):
+    """Mencatat riwayat edit artikel oleh pengguna."""
+    __tablename__ = "article_revisions"
+
+    id = db.Column(db.Integer, primary_key=True)
+    article_id = db.Column(
+        db.Integer,
+        db.ForeignKey("articles.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("data_user.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True
+    )
+    edited_content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)
+
+    article = db.relationship('Article', back_populates='revisions')
+    editor = db.relationship('User', lazy=True)
+
+    def __init__(self, article_id, user_id, edited_content):
+        self.article_id = article_id
+        self.user_id = user_id
+        self.edited_content = edited_content
+
+    def __repr__(self):
+        return f"<ArticleRevision id={self.id} article_id={self.article_id} user_id={self.user_id}>"
+
+
+# =============================================================================
+# MODEL: NOTIFICATION (NOTIFIKASI PERMANEN)
+# =============================================================================
+class Notification(db.Model):
+    """Menyimpan notifikasi permanen untuk pengguna."""
+    __tablename__ = "notifications"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("data_user.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    title = db.Column(db.String(255), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    type = db.Column(db.String(50), default="info") # info, warning, success, danger
+    is_read = db.Column(db.Boolean, default=False, server_default='false')
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)
+
+    user = db.relationship('User', backref=db.backref('notifications', cascade='all, delete-orphan', lazy=True))
+
+    def __init__(self, user_id, title, message, type="info"):
+        self.user_id = user_id
+        self.title = title
+        self.message = message
+        self.type = type
+
+    def __repr__(self):
+        return f"<Notification id={self.id} user_id={self.user_id} type='{self.type}'>"
 
 
 # =============================================================================

@@ -37,60 +37,60 @@ export default function Register() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 bg-neutral p-8 border-4 border-primary shadow-[8px_8px_0px_#2E2E2E] relative">
-      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-surface text-neutral font-bold px-4 py-1 border-2 border-primary uppercase text-sm transform rotate-2">
+    <div className="max-w-md mx-auto mt-10 glass-card p-8 relative">
+      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent/20 text-accent font-semibold px-4 py-1 rounded-full border border-accent/30 text-xs backdrop-blur-md">
         MEMBER BARU
       </div>
-      <h1 className="text-3xl font-extrabold uppercase text-primary mb-6 text-center mt-4">DAFTAR AKUN</h1>
+      <h1 className="text-3xl font-extrabold text-foreground mb-6 text-center mt-4">DAFTAR AKUN</h1>
       
       {error && (
-        <div className="bg-tertiary text-neutral p-3 mb-4 font-bold uppercase border-2 border-primary text-center">
+        <div className="bg-tertiary/20 text-tertiary p-3 mb-4 font-semibold text-sm rounded-lg border border-tertiary/30 text-center">
           {error}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-bold uppercase text-primary mb-1">USERNAME</label>
+          <label className="block text-xs font-semibold uppercase text-foreground/70 mb-1">USERNAME</label>
           <input
             type="text"
             required
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="w-full grunge-input px-4 py-3 font-bold text-primary"
+            className="w-full glass-input px-4 py-3 text-foreground"
           />
         </div>
         <div>
-          <label className="block text-sm font-bold uppercase text-primary mb-1">EMAIL</label>
+          <label className="block text-xs font-semibold uppercase text-foreground/70 mb-1">EMAIL</label>
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full grunge-input px-4 py-3 font-bold text-primary"
+            className="w-full glass-input px-4 py-3 text-foreground"
           />
         </div>
         <div>
-          <label className="block text-sm font-bold uppercase text-primary mb-1">PASSWORD</label>
+          <label className="block text-xs font-semibold uppercase text-foreground/70 mb-1">PASSWORD</label>
           <input
             type="password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full grunge-input px-4 py-3 font-bold text-primary"
+            className="w-full glass-input px-4 py-3 text-foreground"
           />
         </div>
         <button
           type="submit"
           disabled={loading}
-          className="w-full grunge-button py-3 mt-2 disabled:opacity-50"
+          className="w-full glass-button py-3 mt-2 disabled:opacity-50"
         >
           {loading ? 'MEMPROSES...' : 'DAFTAR'}
         </button>
       </form>
       
-      <p className="text-center text-sm font-bold uppercase text-primary mt-6">
-        SUDAH PUNYA AKUN? <Link href="/login" className="text-tertiary hover:underline">MASUK DI SINI</Link>
+      <p className="text-center text-sm font-medium text-foreground/70 mt-6">
+        SUDAH PUNYA AKUN? <Link href="/login" className="text-primary hover:underline">MASUK DI SINI</Link>
       </p>
     </div>
   );

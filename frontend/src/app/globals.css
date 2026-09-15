@@ -1,14 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #E9E1D4;
-  --foreground: #2E2E2E;
-  --primary: #2E2E2E;
-  --secondary: #B5A642;
-  --tertiary: #8C2727;
-  --neutral: #E9E1D4;
-  --surface: #6B8E23;
-  --accent: #3B5998;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --primary: #059669;
+  --secondary: #0d9488;
+  --tertiary: #047857;
+  --neutral: #f1f5f9;
+  --surface: #ffffff;
+  --accent: #10b981;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(226, 232, 240, 0.8);
+  --glass-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
 }
 
 @theme inline {
@@ -20,82 +23,121 @@
   --color-neutral: var(--neutral);
   --color-surface: var(--surface);
   --color-accent: var(--accent);
-  --font-sans: "Courier New", Courier, monospace;
-  --font-mono: "Courier New", Courier, monospace;
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Fira Code", "Courier New", monospace;
 }
 
 body {
-  background: var(--background);
+  background: #f8fafc;
   color: var(--foreground);
   font-family: var(--font-sans);
-  /* Grunge texture overlay */
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  min-height: 100dvh;
 }
 
-/* Grunge specific utilities */
-.grunge-border {
-  border: 2px solid var(--primary);
-  border-radius: 2px;
-  box-shadow: 4px 4px 0px var(--primary);
+/* Glass utilities — light slate + emerald */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: var(--glass-shadow);
+  transition: all 0.3s ease-out;
 }
 
-.grunge-card {
-  background-color: #fff;
-  border: 3px solid var(--primary);
-  box-shadow: 6px 6px 0px var(--primary);
+.glass-nav {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.glass-button {
+  background: #059669;
+  color: #ffffff;
+  border: 1px solid #059669;
+  border-radius: 9999px;
+  font-weight: 600;
+  transition: all 0.2s ease-out;
+  cursor: pointer;
+}
+
+.glass-button:hover {
+  background: #047857;
+  border-color: #047857;
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.35);
+}
+
+.glass-button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.glass-button-secondary {
+  background: transparent;
+  color: #059669;
+  border: 1px solid #6ee7b7;
+  border-radius: 9999px;
+  font-weight: 600;
+  transition: all 0.2s ease-out;
+  cursor: pointer;
+}
+
+.glass-button-secondary:hover {
+  background: #ecfdf5;
+  border-color: #059669;
+}
+
+.glass-input {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  color: #0f172a;
   transition: all 0.2s ease-out;
 }
 
-.grunge-card:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 8px 8px 0px var(--primary);
+.glass-textarea {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  color: #0f172a;
+  transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+  resize: none;
 }
 
-.grunge-button {
-  background-color: var(--primary);
-  color: var(--neutral);
-  border: 2px solid var(--primary);
-  box-shadow: 4px 4px 0px var(--tertiary);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  transition: all 0.1s;
+.glass-textarea::placeholder {
+  color: #94a3b8;
 }
 
-.grunge-button:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px var(--tertiary);
+.glass-textarea:focus {
+  outline: none;
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
 }
 
-.grunge-button:active {
-  transform: translate(4px, 4px);
-  box-shadow: 0px 0px 0px var(--tertiary);
+.glass-input::placeholder {
+  color: #94a3b8;
 }
 
-.grunge-button-secondary {
-  background-color: transparent;
-  color: var(--primary);
-  border: 2px solid var(--primary);
-  box-shadow: 4px 4px 0px var(--primary);
-  font-weight: 700;
-  text-transform: uppercase;
-  transition: all 0.1s;
+.glass-input:focus {
+  outline: none;
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
 }
 
-.grunge-button-secondary:hover {
-  background-color: var(--primary);
-  color: var(--neutral);
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px var(--primary);
-}
-
-.grunge-input {
-  border: 2px solid var(--primary);
-  background-color: #fff;
+.glass-input option {
+  background: #ffffff;
+  color: #0f172a;
   border-radius: 0;
 }
 
-.grunge-input:focus {
-  outline: none;
-  box-shadow: 4px 4px 0px var(--secondary);
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

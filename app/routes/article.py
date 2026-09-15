@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timedelta
 from flask import jsonify, request, session
-from app.models import Article, User, ReadingSession, db
+from app.models import Article, User, ReadingSession, ArticleRevision, db
 from app.utils.decorators import login_required, admin_required
 from . import blueprint_route
 from app.services.wikipediaapi import search_wiki, get_wiki_summary, fetch_and_store_wiki
@@ -134,21 +134,83 @@ def get_article_by_id(article_id):
             'author': article.author,
             'category': article.category,
             'description': article.description,
+            'is_locked': article.is_locked,
             'published_at': article.published_at.strftime('%Y-%m-%d %H:%M:%S') if article.published_at else None
         }
     })
 
+
+############################################################################ EDIT & REVISION API (RBAC)
+@blueprint_route.route('/api/articles/<int:article_id>/edit', methods=['POST', 'PUT'])
+@login_required
+def edit_article(article_id):
+    """User login bisa edit artikel publik, kecuali artikel dikunci."""
+    article = Article.query.get_or_404(article_id)
+    user_id = session.get('user_id')
+    user = User.query.get(user_id)
+
+    if user and user.is_blocked:
+        return jsonify({'success': False, 'messages': 'Akun Anda diblokir, tidak bisa mengedit.'}), 403
+
+    if article.is_locked and session.get('role') != 'admin':
+        return jsonify({'success': False, 'messages': 'Artikel ini dikunci oleh admin.'}), 403
+
+    data = request.get_json() or {}
+    new_content = data.get('description', '').strip()
+    if not new_content:
+        return jsonify({'success': False, 'messages': 'Isi artikel tidak boleh kosong.'}), 400
+
+    # Simpan revisi lama sebelum update
+    revision = ArticleRevision(
+        article_id=article.id,
+        user_id=user_id,
+        edited_content=article.description or ''
+    )
+    db.session.add(revision)
+
+    article.description = new_content
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'messages': 'Artikel berhasil diperbarui, revisi tercatat.',
+        'data': {'id': article.id, 'description': article.description}
+    }), 200
+
+
+@blueprint_route.route('/api/articles/<int:article_id>/revisions', methods=['GET'])
+def get_article_revisions(article_id):
+    """Timeline riwayat edit artikel."""
+    article = Article.query.get_or_404(article_id)
+    revisions = ArticleRevision.query.filter_by(article_id=article.id)\
+        .order_by(ArticleRevision.created_at.desc()).all()
+
+    data = []
+    for rev in revisions:
+        editor = User.query.get(rev.user_id) if rev.user_id else None
+        data.append({
+            'id': rev.id,
+            'editor': editor.username if editor else 'Anonim',
+            'edited_content': (rev.edited_content or '')[:300],
+            'created_at': rev.created_at.strftime('%Y-%m-%d %H:%M:%S') if rev.created_at else None
+        })
+
+    return jsonify({'success': True, 'data': data}), 200
+
 ############################################################################ REAL-TIME READING TRACKING API
 @blueprint_route.route('/api/articles/<int:article_id>/reading/start', methods=['POST'])
 def tracking_start(article_id):
-    """Mulai sesi membaca artikel."""
+    """Mulai sesi membaca artikel. Tiap klik = 1 kunjungan baru."""
     article = Article.query.get_or_404(article_id)
     data = request.get_json() or {}
     
     visitor_id = data.get('visitor_id') or str(uuid.uuid4())
-    session_id = str(uuid.uuid4())
     referrer = data.get('referrer_source', 'Langsung')
     user_id = session.get('user_id')
+
+    # Tiap klik/kunjungan dihitung sebagai sesi baru (Page View).
+    # Guard di frontend (useRef) mencegah double-count dari React Strict Mode.
+    session_id = str(uuid.uuid4())
 
     rs = ReadingSession(
         article_id=article.id,
@@ -224,12 +286,22 @@ def tracking_end(article_id):
 
 @blueprint_route.route('/api/articles/<int:article_id>/active_readers', methods=['GET'])
 def get_active_readers(article_id):
-    """Ambil jumlah pembaca aktif saat ini (last_seen_at >= now - 45s)."""
+    """Ambil pembaca aktif (45 detik terakhir) DAN total pembaca unik permanen."""
     threshold = datetime.utcnow() - timedelta(seconds=45)
-    count = db.session.query(db.func.count(db.distinct(ReadingSession.session_id))).\
-        filter(ReadingSession.article_id == article_id, ReadingSession.last_seen_at >= threshold).scalar()
     
-    return jsonify({'success': True, 'active_readers': count or 0})
+    # Hitung PENGGUNA unik (visitor_id), bukan sesi. 1 orang buka 5 tab = 1 pembaca aktif.
+    active_count = db.session.query(db.func.count(db.distinct(ReadingSession.visitor_id))).\
+        filter(ReadingSession.article_id == article_id, ReadingSession.last_seen_at >= threshold).scalar() or 0
+
+    # Total kunjungan (views) sepanjang masa untuk artikel ini (hitung semua sesi)
+    total_views = db.session.query(db.func.count(ReadingSession.id)).\
+        filter(ReadingSession.article_id == article_id).scalar() or 0
+
+    return jsonify({
+        'success': True,
+        'active_readers': active_count,
+        'total_readers': total_views
+    })
 
 ############################################################################ FUNGSI WIKIPEDIA API
 @blueprint_route.route('/api/wiki/search', methods=['GET'])
