@@ -1,5 +1,51 @@
+# Python / Flask BE
 __pycache__/
 *.py[cod]
-node_modules/
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual env
+env/
+venv/
+.venv/
+ENV/
+
+# Env vars
 .env
+.env.*
+!.env.example
+
+# Flask instance + sqlite
 instance/
+*.sqlite3
+*.db
+
+# Logs
+*.log
+logs/
+
+# Node root stray
+node_modules/
+package-lock.json
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+postgres_data/
