@@ -92,7 +92,7 @@ export default function Home() {
       {/* Hero Section */}
       <div className="text-center max-w-3xl mx-auto mb-16">
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-6 leading-tight">
-          Pusat Pengetahuan & <span className="text-emerald-600">Wawasan Digital</span>
+          Pusat Pengetahuan & <span className="text-emerald-600">Wawasan Dunia</span>
         </h1>
         <p className="text-lg text-slate-600 leading-relaxed mb-8">
           Platform kolaboratif untuk mendokumentasikan ide, berbagi temuan teknologi, dan menganalisis tren literasi secara <em className="font-medium text-slate-700">real-time</em>. Ruang terbuka untuk para inovator.
