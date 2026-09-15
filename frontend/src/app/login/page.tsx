@@ -82,6 +82,9 @@ export default function Login() {
       <p className="text-center text-sm font-medium text-foreground/70 mt-6">
         BELUM PUNYA AKUN? <Link href="/register" className="text-primary hover:underline">DAFTAR DI SINI</Link>
       </p>
+      <p className="text-center text-sm font-medium text-foreground/70 mt-2">
+        LUPA KATA SANDI? <Link href="/forgot-password" className="text-primary hover:underline">RESET DI SINI</Link>
+      </p>
     </div>
   );
 }

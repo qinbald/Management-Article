@@ -24,7 +24,6 @@ def verify_token(token, max_age=3600):
 
 def send_verification_email(to_email, token):
     """Kirim email verifikasi nyata via Flask-Mail."""
-    # Arahkan ke rute frontend Next.js
     frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
     verification_link = f"{frontend_url}/verify/{token}"
     
@@ -43,11 +42,91 @@ Tautan ini hanya berlaku selama 1 jam.
 Jika Anda tidak merasa mendaftar akun di WikiArtikel, abaikan email ini.
 """
     )
-    # Jika kredensial belum diset di development, abaikan pengiriman agar tidak crash
     if current_app.config.get('MAIL_USERNAME'):
         mail.send(msg)
     else:
         print(f"\n[DEV MODE EMAIL] Verification link for {to_email}:\n{verification_link}\n")
+
+def generate_reset_token(user):
+    """Buat token reset password bertanda tangan (Single-Use via pw signature)."""
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    # Embed signature password saat ini: jika password berubah, token lama otomatis invalid
+    payload = {
+        'email': user.email,
+        'pw_sig': user.password[:16]
+    }
+    return serializer.dumps(payload, salt='password-reset-salt')
+
+def verify_reset_token(token, max_age=900):
+    """Verifikasi token reset password. Berlaku 15 menit (900 detik)."""
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    try:
+        data = serializer.loads(token, salt='password-reset-salt', max_age=max_age)
+        email = data.get('email')
+        pw_sig = data.get('pw_sig')
+        
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return None
+        # Single-Use validation: Jika password sudah berubah, tolak
+        if user.password[:16] != pw_sig:
+            return None
+        return user
+    except (SignatureExpired, BadTimeSignature):
+        return None
+
+def send_reset_password_email(to_email, token):
+    """Kirim email instruksi reset password dengan template HTML responsif."""
+    frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+    reset_link = f"{frontend_url}/reset-password/{token}"
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 0; }}
+        .container {{ max-width: 540px; margin: 40px auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }}
+        .header {{ background-color: #059669; padding: 24px; text-align: center; color: #ffffff; }}
+        .content {{ padding: 32px 24px; color: #334155; line-height: 1.6; font-size: 15px; }}
+        .button {{ display: inline-block; background-color: #059669; color: #ffffff !important; text-decoration: none; padding: 12px 32px; border-radius: 9999px; font-weight: bold; margin: 24px 0; }}
+        .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9; }}
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h2 style="margin:0; font-size: 20px;">WikiArtikel</h2>
+        </div>
+        <div class="content">
+          <p>Halo,</p>
+          <p>Kami menerima permintaan untuk mereset kata sandi akun WikiArtikel Anda.</p>
+          <div style="text-align: center;">
+            <a href="{reset_link}" class="button">Atur Ulang Kata Sandi</a>
+          </div>
+          <p>Tautan ini hanya berlaku selama <strong>15 menit</strong> dan hanya dapat digunakan satu kali.</p>
+          <p style="font-size: 13px; color: #64748b;">Jika Anda tidak meminta pengaturan ulang kata sandi, abaikan email ini. Akun Anda tetap aman.</p>
+        </div>
+        <div class="footer">
+          &copy; WikiArtikel. Seluruh hak cipta dilindungi.
+        </div>
+      </div>
+    </body>
+    </html>
+    """
+
+    msg = Message(
+        subject="[WikiArtikel] Permintaan Reset Kata Sandi",
+        recipients=[to_email],
+        body=f"Gunakan tautan berikut untuk mereset kata sandi Anda (berlaku 15 menit): {reset_link}",
+        html=html_content
+    )
+
+    if current_app.config.get('MAIL_USERNAME'):
+        mail.send(msg)
+    else:
+        print(f"\n[DEV MODE EMAIL] Reset password link for {to_email}:\n{reset_link}\n")
 
 ######################################################################### FUNGSI REGISTRASI
 @blueprint_route.route('/registrasi', methods=['POST'])
@@ -242,3 +321,58 @@ def api_me():
             "last_warning_message": user.last_warning_message
         }
     }), 200
+
+######################################################################### LUPA PASSWORD
+@blueprint_route.route('/api/auth/forgot-password', methods=['POST'])
+@limiter.limit("3 per minute")
+def forgot_password():
+    data = request.get_json() or {}
+    email = data.get('email', '').strip().lower()
+
+    # Pesan generik anti-User Enumeration — selalu 200
+    GENERIC_MSG = "Jika email terdaftar, instruksi reset telah dikirim."
+
+    if not email:
+        return jsonify({'success': True, 'messages': GENERIC_MSG}), 200
+
+    user = User.query.filter_by(email=email).first()
+    if not user or not user.is_verified:
+        return jsonify({'success': True, 'messages': GENERIC_MSG}), 200
+
+    # Rate limit internal: 1 email per 2 menit per user
+    if user.last_email_sent:
+        elapsed = datetime.utcnow() - user.last_email_sent
+        if elapsed < timedelta(minutes=2):
+            return jsonify({'success': True, 'messages': GENERIC_MSG}), 200
+
+    user.last_email_sent = datetime.utcnow()
+    db.session.commit()
+
+    token = generate_reset_token(user)
+    try:
+        send_reset_password_email(user.email, token)
+    except Exception as e:
+        current_app.logger.error(f"Gagal mengirim email reset password: {e}")
+
+    return jsonify({'success': True, 'messages': GENERIC_MSG}), 200
+
+
+######################################################################### RESET PASSWORD
+@blueprint_route.route('/api/auth/reset-password/<token>', methods=['POST'])
+@limiter.limit("5 per minute")
+def reset_password(token):
+    data = request.get_json() or {}
+    new_password = data.get('password', '')
+
+    if not new_password or len(new_password) < 8:
+        return jsonify({'success': False, 'messages': 'Password minimal 8 karakter.'}), 400
+
+    user = verify_reset_token(token)
+    if not user:
+        return jsonify({'success': False, 'messages': 'Token tidak valid atau sudah kedaluwarsa.'}), 400
+
+    # Hash password baru dan simpan — ini otomatis invalidasi token lama (single-use)
+    user.password = generate_password_hash(new_password)
+    db.session.commit()
+
+    return jsonify({'success': True, 'messages': 'Kata sandi berhasil diperbarui. Silakan login.'}), 200
