@@ -15,8 +15,10 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object('config.Config')
 
-    # Enable CORS for Next.js frontend (default port 3000)
-    CORS(app, supports_credentials=True, origins=["http://localhost:3000"])
+    # CORS origins: dukung localhost & domain production via config
+    frontend_origin = app.config.get('FRONTEND_URL', 'http://localhost:3000')
+    allowed_origins = list(set(["http://localhost:3000", frontend_origin]))
+    CORS(app, supports_credentials=True, origins=allowed_origins)
 
     db.init_app(app)
     migrate.init_app(app, db)

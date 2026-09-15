@@ -16,8 +16,11 @@ class Config:
     # Cookie security
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
-    SESSION_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('COOKIE_SECURE', 'false').lower() in ['true', '1']
     PERMANENT_SESSION_LIFETIME = 86400  # 1 hari
+
+    # Frontend URL untuk CORS & Verifikasi Email
+    FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
     # Konfigurasi Email (Flask-Mail)
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
