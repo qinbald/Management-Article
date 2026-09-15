@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # 1. DATABASE (PostgreSQL)
+  # ==========================================
+  db:
+    image: postgres:15-alpine
+    container_name: wikiartikel_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-sandipostgres}
+      POSTGRES_DB: ${DB_NAME:-management_artikel}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - wiki_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-management_artikel}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # 2. BACKEND (Flask + Gunicorn)
+  # ==========================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wikiartikel_backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Koneksi ke service 'db' di dalam network Docker
+      - DATABASE_URL=postgresql+pg8000://${DB_USER:-postgres}:${DB_PASSWORD:-sandipostgres}@db:5432/${DB_NAME:-management_artikel}
+      - SECRET_KEY=${SECRET_KEY}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - MAIL_SERVER=${MAIL_SERVER}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USE_TLS=${MAIL_USE_TLS}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_DEFAULT_SENDER=${MAIL_DEFAULT_SENDER}
+    ports:
+      - "5000:5000"
+    networks:
+      - wiki_network
+
+  # ==========================================
+  # 3. FRONTEND (Next.js)
+  # ==========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: wikiartikel_frontend
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      # URL backend yang akan diakses oleh Next.js server-side (rewrite)
+      - NEXT_PUBLIC_BACKEND_URL=http://backend:5000
+    ports:
+      - "3000:3000"
+    networks:
+      - wiki_network
+
+# ==========================================
+# VOLUMES & NETWORKS
+# ==========================================
+volumes:
+  postgres_data: # Volume persisten untuk database
+
+networks:
+  wiki_network:
+    driver: bridge
