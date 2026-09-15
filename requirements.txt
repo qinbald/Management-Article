@@ -10,3 +10,7 @@ pandas
 Faker
 wikipedia-api
 flask-cors
+Flask-Mail
+itsdangerous
+Flask-Limiter
+python-dotenv

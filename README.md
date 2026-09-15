@@ -48,6 +48,10 @@ flowchart LR
 ### 3. Integrasi Eksternal Wikipedia
 
 - **Pencarian Topik**: Mencari ensiklopedia publik Wikipedia langsung dari dashboard aplikasi (multi-bahasa: ID/EN).
+
+> **⚠️ PENTING: PEMBARUAN VERIFIKASI EMAIL (2026-09-15)**
+> Sistem kini mewajibkan verifikasi email nyata saat registrasi. Pengguna lama telah diatur otomatis menjadi `is_verified = True` melalui migrasi Alembic. Pastikan variabel lingkungan `MAIL_USERNAME` dan `MAIL_PASSWORD` (App Password) telah diatur di `.env` agar fitur pengiriman token OTP/Link berfungsi.
+
 - **Pratinjau & Impor Cepat**: Review ringkasan artikel Wikipedia sebelum dimasukkan secara otomatis ke dalam arsip artikel lokal.
 
 ### 4. Mesin Analitik Keterlibatan (Pandas Engine)

@@ -21,13 +21,13 @@ export function Modal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         onClick={onClose}
-        className={`absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-200 ${
+        className={`absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300 ${
           open ? 'opacity-100' : 'opacity-0'
         }`}
       />
       <div
         role="dialog" aria-modal="true" aria-label={title}
-        className={`relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6 transition-all duration-200 will-change-transform ${
+        className={`relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6 transition-all duration-300 ease-in-out will-change-transform ${
           open ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2'
         }`}
       >

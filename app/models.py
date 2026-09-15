@@ -19,6 +19,8 @@ class User(db.Model):
         nullable=False,
         default='user'
     )
+    is_verified = db.Column(db.Boolean, nullable=False, default=False, server_default='false')
+    last_email_sent = db.Column(db.DateTime, nullable=True)
     is_blocked = db.Column(db.Boolean, nullable=False, default=False, server_default='false')
     warning_count = db.Column(db.Integer, nullable=False, default=0, server_default='0')
     last_warning_message = db.Column(db.Text, nullable=True)
@@ -33,11 +35,12 @@ class User(db.Model):
         cascade='all, delete-orphan'
     )
 
-    def __init__(self, username, email, password, role='user'):
+    def __init__(self, username, email, password, role='user', is_verified=False):
         self.username = username
         self.email = email
         self.password = password
         self.role = role
+        self.is_verified = is_verified
 
     def __repr__(self):
         return f"<User id={self.id} username='{self.username}' role='{self.role}'>"

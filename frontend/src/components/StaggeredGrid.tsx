@@ -8,8 +8,8 @@ export function StaggeredGrid({ children }: { children: ReactNode[] }) {
       {children.map((child, i) => (
         <div
           key={i}
-          className="animate-[fadeInUp_0.4s_ease-out_both]"
-          style={{ animationDelay: `${i * 60}ms` }}
+          className="animate-[fadeInUp_0.6s_ease-in-out_both]"
+          style={{ animationDelay: `${i * 80}ms` }}
         >
           {child}
         </div>

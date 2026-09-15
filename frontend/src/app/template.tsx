@@ -9,7 +9,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
   }, []);
   return (
     <div
-      className={`transition-all duration-300 ease-out will-change-transform ${
+      className={`transition-all duration-500 ease-in-out will-change-transform ${
         mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       }`}
     >

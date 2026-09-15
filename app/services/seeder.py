@@ -39,7 +39,8 @@ def _seed_users():
         username="admin_utama",
         email="admin@artikelspace.local",
         password=generate_password_hash("password123"),
-        role="admin"
+        role="admin",
+        is_verified=True
     )
     users.append(admin)
 
@@ -49,7 +50,8 @@ def _seed_users():
             username=fake.unique.user_name(),
             email=fake.unique.email(),
             password=generate_password_hash("password123"),
-            role="user"
+            role="user",
+            is_verified=True
         )
         users.append(user)
 
