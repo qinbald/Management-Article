@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import diff_match_patch from 'diff-match-patch';
 
 interface Revision {
   id: number;
@@ -24,6 +25,24 @@ export default function ArticleDetail() {
   const [showRevisions, setShowRevisions] = useState(false);
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [loadingRevisions, setLoadingRevisions] = useState(false);
+
+  const renderDiff = (oldText: string, newText: string) => {
+    const dmp = new diff_match_patch();
+    const diffs = dmp.diff_main(oldText || '', newText || '');
+    dmp.diff_cleanupSemantic(diffs);
+
+    return diffs.map((part: [number, string], index: number) => {
+      const type = part[0]; // -1: delete, 1: insert, 0: equal
+      const text = part[1];
+      if (type === 1) {
+        return <span key={index} className="bg-emerald-200 text-emerald-900 px-1 rounded">{text}</span>;
+      }
+      if (type === -1) {
+        return <span key={index} className="bg-rose-200 text-rose-900 line-through px-1 rounded">{text}</span>;
+      }
+      return <span key={index}>{text}</span>;
+    });
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
@@ -321,8 +340,8 @@ export default function ArticleDetail() {
       {/* Modal Riwayat Versi */}
       {showRevisions && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
               <h3 className="text-xl font-bold text-slate-900">Riwayat Versi</h3>
               <button onClick={() => setShowRevisions(false)} className="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
             </div>
@@ -333,16 +352,20 @@ export default function ArticleDetail() {
                 <div className="text-center text-slate-500 py-10">Belum ada riwayat edit.</div>
               ) : (
                 <div className="space-y-6">
-                  {revisions.map((rev, idx) => (
-                    <div key={rev.id} className="relative pl-6 border-l-2 border-slate-200">
-                      <div className="absolute w-3 h-3 bg-emerald-500 rounded-full -left-[7px] top-1.5 ring-4 ring-white"></div>
-                      <div className="text-sm font-bold text-slate-900">{rev.editor}</div>
-                      <div className="text-xs text-slate-500 mb-2">{rev.created_at}</div>
-                      <div className="text-sm text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100 line-clamp-3">
-                        {rev.edited_content}
+                  {revisions.map((rev, idx) => {
+                    const prevRev = idx < revisions.length - 1 ? revisions[idx + 1] : null;
+                    const oldContent = prevRev ? prevRev.edited_content : article?.description || '';
+                    return (
+                      <div key={rev.id} className="relative pl-6 border-l-2 border-slate-200">
+                        <div className="absolute w-3 h-3 bg-emerald-500 rounded-full -left-[7px] top-1.5 ring-4 ring-white"></div>
+                        <div className="text-sm font-bold text-slate-900">{rev.editor}</div>
+                        <div className="text-xs text-slate-500 mb-2">{rev.created_at}</div>
+                        <div className="text-sm text-slate-700 bg-slate-50 p-4 rounded-lg border border-slate-100 whitespace-pre-wrap break-words">
+                          {renderDiff(oldContent, rev.edited_content)}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
