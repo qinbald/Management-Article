@@ -108,10 +108,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Search & Filter Bar */}
-      <div className="max-w-4xl mx-auto mb-16 space-y-4">
+      {/* Search & Filter Bar — Glassmorphism + Floating */}
+      <div className="max-w-4xl mx-auto mb-16 space-y-5">
         <form onSubmit={handleSearch}>
-          <div className="bg-white/60 backdrop-blur-md border border-slate-200 p-2 rounded-full shadow-sm flex flex-col md:flex-row gap-2">
+          <div className="bg-white/30 backdrop-blur-md border border-white/50 p-2 rounded-full shadow-xl shadow-slate-200/50 flex flex-col md:flex-row gap-2">
             <input 
               type="text" 
               placeholder="Cari artikel, riset, atau dokumentasi..." 
@@ -119,7 +119,7 @@ export default function Home() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <div className="w-px bg-slate-200 hidden md:block my-2"></div>
+            <div className="w-px bg-white/50 hidden md:block my-2"></div>
             <select 
               className="bg-transparent px-4 py-3 text-slate-700 focus:outline-none cursor-pointer rounded-full md:w-56 text-sm"
               value={category}
@@ -131,13 +131,13 @@ export default function Home() {
                 </option>
               ))}
             </select>
-            <button type="submit" className="bg-slate-900 hover:bg-slate-800 text-white font-medium px-8 py-3 rounded-full transition-colors w-full md:w-auto">
+            <button type="submit" className="bg-slate-900 hover:bg-slate-800 text-white font-medium px-8 py-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 w-full md:w-auto">
               Temukan Topik
             </button>
           </div>
         </form>
 
-        {/* Quick Category Filter Pills */}
+        {/* Quick Category Filter Pills — Glass + Floating */}
         <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
           {CATEGORIES.map((cat) => {
             const isSelected = category === cat;
@@ -146,10 +146,10 @@ export default function Home() {
                 key={cat}
                 type="button"
                 onClick={() => handleCategorySelect(cat)}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ease-in-out ${
                   isSelected
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'bg-white/80 border border-slate-200 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200'
+                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200/50 border border-emerald-600'
+                    : 'bg-white/30 backdrop-blur-md border border-white/50 text-slate-700 shadow-md shadow-slate-200/30 hover:-translate-y-1 hover:shadow-xl hover:bg-white/50 hover:border-white/70'
                 }`}
               >
                 {cat === 'Semua' ? 'Semua Kategori' : cat}

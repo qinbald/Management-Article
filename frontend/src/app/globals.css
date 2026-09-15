@@ -28,7 +28,13 @@
 }
 
 body {
-  background: #f8fafc;
+  background-color: #f8fafc;
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(152, 100%, 93%, 1) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(190, 100%, 93%, 1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(210, 100%, 95%, 1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(160, 100%, 95%, 1) 0px, transparent 50%);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans);
   min-height: 100dvh;
