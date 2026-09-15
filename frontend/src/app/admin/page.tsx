@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { AdminSkeleton } from '@/components/Skeleton';
 
 interface UserItem {
   id: number;
@@ -95,7 +96,7 @@ export default function AdminPage() {
     handleAction(`/api/admin/users/${userId}/warn`, 'POST', { reason });
   };
 
-  if (loading) return <div className="text-center py-20 font-semibold tracking-widest text-foreground/70 animate-pulse">MEMUAT PANEL ADMIN...</div>;
+  if (loading) return <AdminSkeleton />;
   if (error) return <div className="text-center py-20 font-semibold text-tertiary">{error}</div>;
 
   return (

@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import diff_match_patch from 'diff-match-patch';
+import { ArticleDetailSkeleton } from '@/components/Skeleton';
 
 interface Revision {
   id: number;
@@ -238,7 +239,7 @@ export default function ArticleDetail() {
     interactionCount.current += 1;
   };
 
-  if (loading) return <div className="text-center py-20 font-semibold tracking-widest text-foreground/70 animate-pulse">MEMUAT ARTIKEL...</div>;
+  if (loading) return <ArticleDetailSkeleton />;
   if (error || !article) return <div className="text-center py-20 font-semibold text-tertiary">{error || 'ARTIKEL TIDAK DITEMUKAN'}</div>;
 
   return (
@@ -347,7 +348,7 @@ export default function ArticleDetail() {
             </div>
             <div className="p-6 flex-1 overflow-y-auto">
               {loadingRevisions ? (
-                <div className="text-center text-slate-500 py-10 animate-pulse">Memuat riwayat...</div>
+                <div className="space-y-3 animate-pulse">{Array.from({length:3}).map((_,i)=><div key={i} className="h-20 bg-slate-100 rounded-xl" />)}</div>
               ) : revisions.length === 0 ? (
                 <div className="text-center text-slate-500 py-10">Belum ada riwayat edit.</div>
               ) : (

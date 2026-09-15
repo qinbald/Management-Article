@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ProfileSkeleton } from '@/components/Skeleton';
 
 interface UserProfile {
   id: number;
@@ -84,7 +85,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) return <div className="text-center py-20 font-semibold tracking-widest text-foreground/70 animate-pulse">MEMUAT PROFIL...</div>;
+  if (loading) return <ProfileSkeleton />;
   if (error) return <div className="text-center py-20 font-semibold text-tertiary">{error}</div>;
   if (!profile) return null;
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AnalyticsSkeleton } from '@/components/Skeleton';
 
 export default function Analytics() {
   const [data, setData] = useState<any>(null);
@@ -26,7 +27,7 @@ export default function Analytics() {
     fetchAnalytics();
   }, []);
 
-  if (loading) return <div className="text-center py-20 font-semibold tracking-widest text-foreground/70 animate-pulse">MEMUAT ANALITIK...</div>;
+  if (loading) return <AnalyticsSkeleton />;
   if (error) return <div className="text-center py-20 font-semibold text-tertiary">{error}</div>;
   if (!data || !data.summary) return <div className="glass-card text-center py-20 font-semibold text-foreground/70 p-8">BELUM ADA DATA ANALITIK.</div>;
 
