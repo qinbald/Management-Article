@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { StaggeredGrid } from '@/components/StaggeredGrid';
+import { HomePageSkeleton } from '@/components/Skeleton';
 
 interface Article {
   id: number;
@@ -84,7 +85,7 @@ export default function Home() {
     fetchArticles(searchQuery, category);
   };
 
-  if (loading && articles.length === 0) return <div className="text-center py-24 font-medium tracking-wide text-slate-500 animate-pulse">Memuat data...</div>;
+  if (loading && articles.length === 0) return <HomePageSkeleton />;
   if (error) return <div className="text-center py-24 font-medium text-red-500">{error}</div>;
 
   return (
