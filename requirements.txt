@@ -14,3 +14,4 @@ Flask-Mail
 itsdangerous
 Flask-Limiter
 python-dotenv
+gunicorn
