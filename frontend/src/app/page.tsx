@@ -89,13 +89,13 @@ export default function Home() {
   if (error) return <div className="text-center py-24 font-medium text-red-500">{error}</div>;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       {/* Hero Section */}
-      <div className="text-center max-w-3xl mx-auto mb-16">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-6 leading-tight">
+      <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
+        <h1 className="text-[30px] sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-4 sm:mb-6 leading-[1.15] sm:leading-tight text-balance">
           Pusat Pengetahuan & <span className="text-emerald-600">Wawasan Dunia</span>
         </h1>
-        <p className="text-lg text-slate-600 leading-relaxed mb-8">
+        <p className="text-[15px] sm:text-lg text-slate-600 leading-relaxed mb-6 sm:mb-8 text-pretty px-1 sm:px-0">
           Platform kolaboratif untuk mendokumentasikan ide, berbagi temuan teknologi, dan menganalisis tren literasi secara <em className="font-medium text-slate-700">real-time</em>. Ruang terbuka untuk para inovator.
         </p>
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
