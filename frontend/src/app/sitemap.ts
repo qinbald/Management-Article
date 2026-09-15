@@ -4,9 +4,10 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://artikelspace.com';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Fetch artikel dari Flask API (server-side, no proxy needed)
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
   let articles: { id: number; published_at: string }[] = [];
   try {
-    const res = await fetch('http://localhost:5000/get_articles', {
+    const res = await fetch(`${backendUrl}/get_articles`, {
       next: { revalidate: 3600 }, // ISR: regenerate tiap 1 jam
     });
     const data = await res.json();

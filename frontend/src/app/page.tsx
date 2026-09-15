@@ -23,7 +23,7 @@ export default function Home() {
   const fetchArticles = async (q = '', cat = 'Semua') => {
     setLoading(true);
     try {
-      const url = new URL('http://localhost:3000/api/flask/get_articles');
+      const url = new URL('/api/flask/get_articles', window.location.origin);
       if (q) url.searchParams.append('q', q);
       if (cat && cat !== 'Semua') url.searchParams.append('category', cat);
       
@@ -46,7 +46,7 @@ export default function Home() {
     const initFetch = async () => {
       setLoading(true);
       try {
-        const res = await fetch('http://localhost:3000/api/flask/get_articles');
+        const res = await fetch('/api/flask/get_articles');
         const data = await res.json();
         if (mounted && data.success) {
           setArticles(data.data);
